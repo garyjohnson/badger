@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BADGER_VERSION="0.1.0"
+BADGER_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+usage() {
+  cat <<'EOF'
+badger — A lightweight quality gate for Claude Code sessions.
+
+Usage:
+  badger install          Interactive project setup
+  badger uninstall        Remove badger from the current project
+  badger submit           Run pre-submit checks and prompt review
+  badger submit --finalize  Re-run checks and execute submit action
+  badger hook <event>     Run a hook (called by Claude Code)
+  badger version          Print version
+
+See https://github.com/garyjohnson/badger for more information.
+EOF
+}
+
+case "${1:-}" in
+  install)
+    shift
+    source "$BADGER_ROOT/lib/install.sh"
+    badger_install "$@"
+    ;;
+  uninstall)
+    shift
+    source "$BADGER_ROOT/lib/uninstall.sh"
+    badger_uninstall "$@"
+    ;;
+  submit)
+    shift
+    source "$BADGER_ROOT/lib/submit.sh"
+    badger_submit "$@"
+    ;;
+  hook)
+    shift
+    event="${1:-}"
+    shift || true
+    case "$event" in
+      stop)
+        source "$BADGER_ROOT/lib/hook-stop.sh"
+        badger_hook_stop "$@"
+        ;;
+      session-start)
+        source "$BADGER_ROOT/lib/hook-session-start.sh"
+        badger_hook_session_start "$@"
+        ;;
+      *)
+        echo "badger: unknown hook event: $event" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  version|--version|-v)
+    echo "badger $BADGER_VERSION"
+    ;;
+  help|--help|-h|"")
+    usage
+    ;;
+  *)
+    echo "badger: unknown command: $1" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

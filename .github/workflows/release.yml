@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create tarball
+        run: |
+          prefix="badger-${{ steps.version.outputs.version }}"
+          git archive --format=tar.gz --prefix="$prefix/" HEAD -o "$prefix.tar.gz"
+          echo "tarball=$prefix.tar.gz" >> "$GITHUB_ENV"
+          echo "sha256=$(shasum -a 256 "$prefix.tar.gz" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.tarball }}
+          generate_release_notes: true
+
+      - name: Update Homebrew tap
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.TAP_REPO_TOKEN }}
+          repository: garyjohnson/homebrew-tap
+          event-type: update-formula
+          client-payload: |
+            {
+              "formula": "badger",
+              "version": "${{ steps.version.outputs.version }}",
+              "sha256": "${{ env.sha256 }}",
+              "url": "https://github.com/${{ github.repository }}/archive/refs/tags/v${{ steps.version.outputs.version }}.tar.gz"
+            }
