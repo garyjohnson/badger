@@ -1,6 +1,6 @@
 {
   "name": "badger",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A lightweight quality gate for Claude Code sessions",
   "bin": {
     "badger": "./bin/badger"
