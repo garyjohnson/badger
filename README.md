@@ -2,10 +2,6 @@
 
 A lightweight quality gate for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) sessions.
 
-Claude Code is great at writing code. It's less great at making sure that code actually works before declaring victory. badger fixes that — it runs your tests when Claude stops, and gates submissions behind configurable quality checks.
-
-No subagents. No backchannel appeals. No token-burning review loops. Just your test suite and a few well-placed prompts.
-
 ## How it works
 
 badger does two things:
