@@ -1,69 +1,61 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env node
+'use strict'
 
-BADGER_VERSION="0.1.0"
-BADGER_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+const path = require('path')
+const command = process.argv[2]
 
-usage() {
-  cat <<'EOF'
-badger — A lightweight quality gate for Claude Code sessions.
-
-Usage:
-  badger install          Interactive project setup
-  badger uninstall        Remove badger from the current project
-  badger submit           Run pre-submit checks and prompt review
-  badger submit --finalize  Re-run checks and execute submit action
-  badger hook <event>     Run a hook (called by Claude Code)
-  badger version          Print version
-
-See https://github.com/garyjohnson/badger for more information.
-EOF
+const commands = {
+  install: '../lib/install',
+  uninstall: '../lib/uninstall',
+  submit: '../lib/submit',
+  hook: '../lib/hook',
+  version: () => {
+    const pkg = require('../package.json')
+    console.log(`badger ${pkg.version}`)
+  },
+  help: usage,
+  '--help': usage,
+  '-h': usage,
+  '--version': () => commands.version(),
+  '-v': () => commands.version()
 }
 
-case "${1:-}" in
-  install)
-    shift
-    source "$BADGER_ROOT/lib/install.sh"
-    badger_install "$@"
-    ;;
-  uninstall)
-    shift
-    source "$BADGER_ROOT/lib/uninstall.sh"
-    badger_uninstall "$@"
-    ;;
-  submit)
-    shift
-    source "$BADGER_ROOT/lib/submit.sh"
-    badger_submit "$@"
-    ;;
-  hook)
-    shift
-    event="${1:-}"
-    shift || true
-    case "$event" in
-      stop)
-        source "$BADGER_ROOT/lib/hook-stop.sh"
-        badger_hook_stop "$@"
-        ;;
-      session-start)
-        source "$BADGER_ROOT/lib/hook-session-start.sh"
-        badger_hook_session_start "$@"
-        ;;
-      *)
-        echo "badger: unknown hook event: $event" >&2
-        exit 1
-        ;;
-    esac
-    ;;
-  version|--version|-v)
-    echo "badger $BADGER_VERSION"
-    ;;
-  help|--help|-h|"")
-    usage
-    ;;
-  *)
-    echo "badger: unknown command: $1" >&2
-    usage >&2
-    exit 1
-    ;;
-esac
+function usage () {
+  console.log(`badger — A lightweight quality gate for Claude Code sessions.
+
+Usage:
+  badger install              Interactive project setup
+  badger uninstall            Remove badger from the current project
+  badger submit               Run pre-submit checks and prompt review
+  badger submit --finalize    Re-run checks and execute submit action
+  badger hook <event>         Run a hook (called by Claude Code)
+  badger version              Print version
+
+See https://github.com/garyjohnson/badger for more information.`)
+}
+
+async function main () {
+  if (!command) {
+    usage()
+    process.exit(0)
+  }
+
+  const entry = commands[command]
+  if (!entry) {
+    console.error(`badger: unknown command: ${command}`)
+    usage()
+    process.exit(1)
+  }
+
+  if (typeof entry === 'function') {
+    await entry()
+  } else {
+    const mod = require(entry)
+    await mod(process.argv.slice(3))
+  }
+}
+
+main().catch(err => {
+  console.error(`badger: ${err.message}`)
+  process.exit(1)
+})

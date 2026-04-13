@@ -1,0 +1,29 @@
+{
+  "name": "badger",
+  "version": "0.1.0",
+  "description": "A lightweight quality gate for Claude Code sessions",
+  "bin": {
+    "badger": "./bin/badger"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "prompts/"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/garyjohnson/badger.git"
+  },
+  "homepage": "https://github.com/garyjohnson/badger#readme",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "testing",
+    "quality",
+    "hooks"
+  ]
+}
