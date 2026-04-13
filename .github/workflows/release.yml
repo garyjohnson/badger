@@ -19,18 +19,16 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      - name: Create tarball
-        run: |
-          prefix="badger-${{ steps.version.outputs.version }}"
-          git archive --format=tar.gz --prefix="$prefix/" HEAD -o "$prefix.tar.gz"
-          echo "tarball=$prefix.tar.gz" >> "$GITHUB_ENV"
-          echo "sha256=$(shasum -a 256 "$prefix.tar.gz" | cut -d' ' -f1)" >> "$GITHUB_ENV"
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.tarball }}
           generate_release_notes: true
+
+      - name: Compute checksum from release archive
+        run: |
+          url="https://github.com/${{ github.repository }}/archive/refs/tags/v${{ steps.version.outputs.version }}.tar.gz"
+          curl -sL "$url" -o release.tar.gz
+          echo "sha256=$(shasum -a 256 release.tar.gz | cut -d' ' -f1)" >> "$GITHUB_ENV"
 
       - name: Update Homebrew tap
         uses: peter-evans/repository-dispatch@v3
