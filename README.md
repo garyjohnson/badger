@@ -129,6 +129,10 @@ badger uninstall
 
 Removes hooks from `.claude/settings.json` and deletes `.claude/badger/`. Your scripts in `./script/` are left untouched.
 
+## Inspiration
+
+badger is heavily inspired by [prove_it](https://github.com/searlsco/prove_it), a more comprehensive and robust quality enforcement framework for Claude Code. badger is an experiment in creating something lighter weight in terms of token usage — but probably less reliable as a trade-off. If you want thorough, battle-tested enforcement with independent AI reviewers and a full appeal system, use prove_it. If you want something simpler that stays out of your way and doesn't burn through your context window, give badger a try.
+
 ## Philosophy
 
 badger is a reaction to the complexity of tools that try to enforce perfect behavior from AI coding assistants. The reality is:
